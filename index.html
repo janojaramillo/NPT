@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>SAVIA · NP del Prematuro</title>
+<meta name="description" content="CDSS de nutrición parenteral del prematuro: cálculo por peso, metas por día, monitoreo, complicaciones y casos clínicos.">
+<meta name="theme-color" content="#1c0d0a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="SAVIA NP">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#1c0d0a; --ink2:#3b1f1a; --cream:#f7efe4; --paper:#fffaf3; --line:#e6d6c4;
+  --terra:#b5523b; --terra2:#8f3a27; --amber:#e0a33a; --rose:#d97a62; --sage:#5f7d63;
+  --blue:#3d6a8a; --warn:#b9771a; --bad:#a3282a; --ok:#3f7a4a; --muted:#7a6558;
+  --serif:'Fraunces',Georgia,'Times New Roman',serif;
+  --sans:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+  --mono:'JetBrains Mono',ui-monospace,Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--cream);color:var(--ink2);font-family:var(--sans);font-size:15px;line-height:1.5}
+body{padding-bottom:env(safe-area-inset-bottom)}
+h1,h2,h3{font-family:var(--serif);color:var(--ink);line-height:1.15;margin:.2em 0 .5em}
+h2{font-size:1.45rem} h3{font-size:1.1rem}
+a{color:var(--terra)}
+.mono{font-family:var(--mono)}
+small,.muted{color:var(--muted)}
+
+/* ---------- CARÁTULA ---------- */
+#cover{position:fixed;inset:0;z-index:50;overflow:hidden;color:var(--cream);
+  background:radial-gradient(120% 80% at 70% 15%,#4a1d14 0%,#24100c 45%,#120706 100%);
+  display:flex;flex-direction:column;justify-content:space-between;
+  padding:calc(env(safe-area-inset-top) + 22px) 22px calc(env(safe-area-inset-bottom) + 22px);
+  transition:opacity .6s ease, transform .6s ease}
+#cover.gone{opacity:0;transform:scale(1.04);pointer-events:none}
+#cover .kicker{font-family:var(--mono);font-size:.68rem;letter-spacing:.22em;text-transform:uppercase;color:#e9b98f;opacity:.85}
+#cover .art{position:absolute;inset:0;z-index:0}
+#cover .art svg{width:100%;height:100%}
+#cover .top,#cover .bottom{position:relative;z-index:2}
+#cover .bottom{margin:0 -22px -22px;padding:34px 22px calc(env(safe-area-inset-bottom) + 22px);background:linear-gradient(180deg,rgba(18,7,6,0) 0%,rgba(18,7,6,.82) 38%,rgba(18,7,6,.95) 100%)}
+#cover .title{font-family:var(--serif);font-weight:800;font-size:clamp(4rem,22vw,8rem);letter-spacing:.04em;line-height:.9;margin:6px 0 0;
+  background:linear-gradient(180deg,#fff4e3 10%,#f0b77d 60%,#c8603f 100%);-webkit-background-clip:text;background-clip:text;color:transparent;
+  text-shadow:0 0 40px rgba(240,160,100,.15)}
+#cover .sub{font-family:var(--serif);font-size:1.25rem;color:#f5dcc2;margin:4px 0 0}
+#cover .tag{font-family:var(--serif);font-style:italic;color:#e6c3a3;font-size:1rem;max-width:22rem;margin:14px 0 0}
+#cover .btn-enter{display:inline-flex;align-items:center;gap:10px;margin-top:18px;border:1px solid #f0b77d;background:rgba(240,183,125,.12);
+  color:#fff4e3;font:600 1rem var(--sans);padding:13px 22px;border-radius:999px;cursor:pointer;backdrop-filter:blur(4px)}
+#cover .btn-enter:active{transform:scale(.97)}
+#cover .sig{font-size:.72rem;color:#d9b89a;margin-top:16px;line-height:1.4}
+#cover .ev{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+#cover .ev span{font-family:var(--mono);font-size:.62rem;border:1px solid rgba(240,183,125,.35);color:#f0caa4;padding:3px 8px;border-radius:999px}
+@keyframes drip{0%{transform:translateY(0);opacity:0}10%{opacity:1}75%{opacity:1}100%{transform:translateY(64px);opacity:0}}
+@keyframes floaty{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+@keyframes pulseLine{0%{stroke-dashoffset:900}100%{stroke-dashoffset:0}}
+@keyframes glow{0%,100%{opacity:.55}50%{opacity:1}}
+.drop{animation:drip 2.2s ease-in infinite}
+.drop.d2{animation-delay:.75s}.drop.d3{animation-delay:1.5s}
+.mol{animation:floaty 5s ease-in-out infinite}
+.mol.m2{animation-delay:1.2s}.mol.m3{animation-delay:2.4s}
+.curve{stroke-dasharray:900;animation:pulseLine 4s ease-out forwards}
+.halo{animation:glow 4s ease-in-out infinite}
+
+/* ---------- APP ---------- */
+header.app{position:sticky;top:0;z-index:20;background:rgba(28,13,10,.97);color:var(--cream);
+  padding:calc(env(safe-area-inset-top) + 8px) 14px 0}
+header.app .row{display:flex;align-items:center;justify-content:space-between;gap:8px}
+header.app .brand{font-family:var(--serif);font-weight:800;font-size:1.3rem;letter-spacing:.05em;color:#f3c08f;cursor:pointer}
+header.app .brand small{font-family:var(--sans);font-weight:500;font-size:.72rem;color:#d9b89a;letter-spacing:0;margin-left:6px}
+header.app .icon-btn{background:none;border:1px solid #5a362c;color:#f3c08f;border-radius:10px;padding:6px 10px;font:600 .78rem var(--sans)}
+nav.tabs{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;margin-top:8px}
+nav.tabs::-webkit-scrollbar{display:none}
+nav.tabs button{flex:0 0 auto;background:none;border:none;color:#d9b89a;font:600 .82rem var(--sans);padding:9px 12px 11px;border-bottom:3px solid transparent;cursor:pointer}
+nav.tabs button.on{color:#fff4e3;border-bottom-color:var(--amber)}
+main{max-width:860px;margin:0 auto;padding:14px 14px 60px}
+section.tab{display:none}
+section.tab.on{display:block}
+.card{background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:14px;margin:0 0 14px;box-shadow:0 1px 0 rgba(60,30,20,.04)}
+.card.dark{background:var(--ink2);color:var(--cream);border-color:#5a362c}
+.card.dark h3{color:#f3c08f}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+@media(max-width:380px){.grid3{grid-template-columns:1fr 1fr}}
+label.f{display:block;font-size:.74rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+label.f input,label.f select{display:block;width:100%;margin-top:3px;font:600 1.02rem var(--mono);color:var(--ink);
+  background:#fff;border:1px solid var(--line);border-radius:10px;padding:9px 10px;-webkit-appearance:none;appearance:none}
+label.f input:focus,label.f select:focus{outline:2px solid var(--amber);border-color:transparent}
+label.f .u{font-weight:500;text-transform:none;letter-spacing:0}
+.chk{display:flex;align-items:center;gap:8px;font-size:.88rem;padding:6px 0}
+.chk input{width:20px;height:20px;accent-color:var(--terra)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:none;border-radius:12px;padding:11px 14px;font:600 .9rem var(--sans);cursor:pointer}
+.btn.pri{background:var(--terra);color:#fff}
+.btn.sec{background:#f0e2d2;color:var(--ink2)}
+.btn.ghost{background:none;border:1px solid var(--line);color:var(--ink2)}
+.btns{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.sectlabel{font-family:var(--mono);font-size:.68rem;letter-spacing:.16em;text-transform:uppercase;color:var(--terra);margin:2px 0 8px}
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+@media(min-width:600px){.kpis{grid-template-columns:repeat(6,1fr)}}
+.kpi{background:#fff;border:1px solid var(--line);border-radius:12px;padding:8px}
+.kpi b{display:block;font:700 1.15rem var(--mono);color:var(--ink)}
+.kpi span{font-size:.66rem;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+.kpi.w{border-color:#e7c27f;background:#fff8ea}.kpi.b{border-color:#e3a3a3;background:#fff1f0}
+table.t{width:100%;border-collapse:collapse;font-size:.84rem}
+table.t th{text-align:left;font-size:.68rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);border-bottom:1px solid var(--line);padding:6px 4px}
+table.t td{border-bottom:1px solid #f0e4d6;padding:7px 4px;vertical-align:top}
+table.t td.n{font-family:var(--mono);text-align:right;white-space:nowrap}
+table.t tr.sub td{background:#fbf3e8;font-weight:600}
+.scroll{overflow-x:auto}
+.alert{border-radius:12px;padding:10px 12px;margin:0 0 8px;font-size:.88rem;border-left:4px solid}
+.alert.bad{background:#fff0ee;border-color:var(--bad)}
+.alert.warn{background:#fff7e6;border-color:var(--warn)}
+.alert.info{background:#eef4f8;border-color:var(--blue)}
+.alert.ok{background:#eef6ef;border-color:var(--ok)}
+.pill{display:inline-block;font:600 .68rem var(--mono);padding:2px 8px;border-radius:999px;background:#f0e2d2;color:var(--terra2);margin:0 4px 4px 0}
+details{border:1px solid var(--line);border-radius:12px;background:#fff;margin:0 0 10px}
+details>summary{cursor:pointer;padding:11px 12px;font-weight:600;list-style:none}
+details>summary::-webkit-details-marker{display:none}
+details>summary::after{content:'＋';float:right;color:var(--terra)}
+details[open]>summary::after{content:'－'}
+details .in{padding:0 12px 12px}
+.bar{display:flex;height:16px;border-radius:999px;overflow:hidden;margin:6px 0 4px;border:1px solid var(--line)}
+.bar i{display:block;height:100%}
+.legend{display:flex;flex-wrap:wrap;gap:10px;font-size:.74rem;color:var(--muted)}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:4px;vertical-align:-1px}
+.case-h{display:flex;gap:10px;align-items:flex-start}
+.case-n{flex:0 0 auto;width:40px;height:40px;border-radius:12px;background:var(--ink2);color:#f3c08f;font:800 1.2rem var(--serif);display:flex;align-items:center;justify-content:center}
+.q{background:#fbf3e8;border-radius:10px;padding:8px 10px;margin:8px 0;font-size:.9rem}
+ul.tight{margin:.3em 0;padding-left:1.15em} ul.tight li{margin:.2em 0}
+.drawer{position:fixed;inset:0;z-index:40;background:rgba(20,8,6,.55);display:none;align-items:flex-end;justify-content:center}
+.drawer.on{display:flex}
+.drawer .sheet{background:var(--paper);width:100%;max-width:640px;max-height:88vh;overflow:auto;border-radius:20px 20px 0 0;padding:16px 16px calc(env(safe-area-inset-bottom) + 18px)}
+.foot{font-size:.74rem;color:var(--muted);text-align:center;margin:24px 0 8px;line-height:1.5}
+.toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 18px);transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 16px;border-radius:999px;font-size:.85rem;z-index:60;opacity:0;transition:opacity .3s}
+.toast.on{opacity:1}
+@media print{header.app,#cover,.btns,.no-print{display:none!important} section.tab{display:block!important} body{background:#fff}}
+</style>
+</head>
+<body>
+
+<!-- ===================== CARÁTULA ===================== -->
+<div id="cover" role="dialog" aria-label="Carátula">
+  <div class="art" aria-hidden="true">
+    <svg viewBox="0 0 400 800" preserveAspectRatio="xMidYMid slice">
+      <defs>
+        <linearGradient id="gDex" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f6c26b"/><stop offset="1" stop-color="#d98d2b"/></linearGradient>
+        <linearGradient id="gAA" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e48d72"/><stop offset="1" stop-color="#b5523b"/></linearGradient>
+        <linearGradient id="gLip" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fffaf0"/><stop offset="1" stop-color="#ead8bf"/></linearGradient>
+        <radialGradient id="gHalo" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#f3a46b" stop-opacity=".55"/><stop offset="1" stop-color="#f3a46b" stop-opacity="0"/></radialGradient>
+        <clipPath id="bag"><path d="M262 118 h96 q14 0 14 14 v196 q0 30-30 34 l-20 3 h-28 l-20-3 q-30-4-30-34 v-196 q0-14 14-14z"/></clipPath>
+        <pattern id="grid" width="24" height="24" patternUnits="userSpaceOnUse"><path d="M24 0H0V24" fill="none" stroke="#f0b77d" stroke-opacity=".05"/></pattern>
+      </defs>
+      <rect width="400" height="800" fill="url(#grid)"/>
+      <!-- percentiles fantasma -->
+      <g fill="none" stroke="#f0b77d" stroke-opacity=".10" stroke-width="1">
+        <path d="M-10 760 C 120 720, 220 640, 420 540"/>
+        <path d="M-10 790 C 120 750, 220 680, 420 590"/>
+        <path d="M-10 730 C 120 690, 220 600, 420 490"/>
+      </g>
+      <g transform="translate(30,190) scale(.86)">
+      <circle class="halo" cx="310" cy="240" r="150" fill="url(#gHalo)"/>
+      <!-- gancho -->
+      <path d="M310 70 v30 M296 100 h28 q6 0 6 6 v12 h-40 v-12 q0-6 6-6z" stroke="#e9b98f" stroke-width="2" fill="none" opacity=".7"/>
+      <!-- bolsa tres en uno -->
+      <g clip-path="url(#bag)">
+        <rect x="240" y="110" width="140" height="270" fill="#2b1410"/>
+        <rect x="240" y="150" width="140" height="80" fill="url(#gLip)" opacity=".95"/>
+        <rect x="240" y="230" width="140" height="70" fill="url(#gAA)"/>
+        <rect x="240" y="300" width="140" height="80" fill="url(#gDex)"/>
+        <!-- moléculas -->
+        <g class="mol"><circle cx="280" cy="180" r="7" fill="#fff" opacity=".9"/><circle cx="300" cy="200" r="4" fill="#fff" opacity=".8"/><circle cx="335" cy="175" r="9" fill="#fff" opacity=".85"/><circle cx="350" cy="208" r="5" fill="#fff" opacity=".8"/></g>
+        <g class="mol m2" stroke="#ffe3d6" stroke-width="2" fill="#f6b39c"><circle cx="270" cy="262" r="4"/><circle cx="288" cy="252" r="4"/><circle cx="306" cy="262" r="4"/><circle cx="324" cy="252" r="4"/><circle cx="342" cy="262" r="4"/><path d="M270 262 L288 252 L306 262 L324 252 L342 262" fill="none"/></g>
+        <g class="mol m3" fill="none" stroke="#fff3d6" stroke-width="2"><path d="M275 330 l8-5 8 5 v9 l-8 5 -8-5z"/><path d="M318 345 l8-5 8 5 v9 l-8 5 -8-5z"/><path d="M345 318 l7-4 7 4 v8 l-7 4 -7-4z"/></g>
+      </g>
+      <path d="M262 118 h96 q14 0 14 14 v196 q0 30-30 34 l-20 3 h-28 l-20-3 q-30-4-30-34 v-196 q0-14 14-14z" fill="none" stroke="#f3c08f" stroke-width="2.5"/>
+      <path d="M262 118 h96 q14 0 14 14 v196 q0 30-30 34 l-20 3 h-28 l-20-3 q-30-4-30-34 v-196 q0-14 14-14z" fill="none" stroke="#fff" stroke-opacity=".15" stroke-width="8"/>
+      <!-- cámara de goteo -->
+      <path d="M310 365 v18" stroke="#f3c08f" stroke-width="3"/>
+      <rect x="296" y="383" width="28" height="80" rx="12" fill="rgba(255,240,220,.06)" stroke="#f3c08f" stroke-width="2"/>
+      <circle class="drop" cx="310" cy="392" r="5" fill="#f6c26b"/>
+      <circle class="drop d2" cx="310" cy="392" r="5" fill="#e48d72"/>
+      <circle class="drop d3" cx="310" cy="392" r="5" fill="#fffaf0"/>
+      <!-- línea → curva de crecimiento -->
+      <path class="curve" d="M310 463 C 310 560, 250 600, 170 640 S 40 720, -10 740" fill="none" stroke="#f3c08f" stroke-width="3" stroke-linecap="round"/>
+      <path class="curve" d="M310 463 C 310 560, 250 600, 170 640 S 40 720, -10 740" fill="none" stroke="#f3a46b" stroke-opacity=".25" stroke-width="10" stroke-linecap="round"/>
+      </g>
+    </svg>
+  </div>
+  <div class="top">
+    <div class="kicker">CDSS · Sala de Neonatología · Hospital Dr. Cecilio Castillero</div>
+    <h1 class="title">SAVIA</h1>
+    <div class="sub">Nutrición parenteral del prematuro</div>
+    <p class="tag">Calcular gramo a gramo lo que la placenta entregaba segundo a segundo.</p>
+  </div>
+  <div class="bottom">
+    <div class="ev"><span>ESPGHAN 2018</span><span>ASPEN 2023</span><span>NICE NG154</span><span>ProVIDe 2022</span><span>Consenso 2025</span></div>
+    <button class="btn-enter" id="enter" type="button">Entrar a la calculadora <span aria-hidden="true">→</span></button>
+    <div class="sig">Dr. Jano Jaramillo — Médico Pediatra y Neonatólogo · Posgrado en Trastornos del Aprendizaje<br>v1.0 · noviembre 2026 · funciona sin internet</div>
+  </div>
+</div>
+
+<!-- ===================== APP ===================== -->
+<header class="app">
+  <div class="row">
+    <div class="brand" id="brand">SAVIA<small>NP del prematuro</small></div>
+    <button class="icon-btn" id="openCfg" type="button">⚙ Concentraciones</button>
+  </div>
+  <nav class="tabs" id="tabs">
+    <button data-t="calc" class="on">Calcular</button>
+    <button data-t="metas">Metas</button>
+    <button data-t="monit">Monitoreo</button>
+    <button data-t="compl">Complicaciones</button>
+    <button data-t="casos">Casos</button>
+    <button data-t="evid">Evidencia</button>
+  </nav>
+</header>
+
+<main>
+<!-- ============ CALCULAR ============ -->
+<section class="tab on" id="t-calc">
+  <div class="card">
+    <div class="sectlabel">1 · Paciente</div>
+    <div class="grid">
+      <label class="f">Peso de trabajo <span class="u">(g)</span><input id="peso" type="number" inputmode="decimal" value="900" min="300" max="5000"></label>
+      <label class="f">Día de vida <span class="u">(DDV, nacimiento = 1)</span><input id="ddv" type="number" inputmode="numeric" value="1" min="1" max="120"></label>
+      <label class="f">EG al nacer <span class="u">(sem)</span><input id="eg" type="number" inputmode="decimal" value="27" min="22" max="42"></label>
+      <label class="f">Acceso venoso<select id="acc"><option value="c">Central (CVU / PICC)</option><option value="p">Periférico</option></select></label>
+    </div>
+    <label class="chk"><input type="checkbox" id="peg"> PEG / RCIU (riesgo de síndrome tipo realimentación)</label>
+    <label class="chk"><input type="checkbox" id="diur" checked> Diuresis establecida (≥1 mL/kg/h) y K⁺ &lt;5.5 mmol/L</label>
+    <label class="chk"><input type="checkbox" id="col"> Colestasis (bilirrubina directa/conjugada &gt;1 mg/dL)</label>
+  </div>
+
+  <div class="card">
+    <div class="sectlabel">2 · Líquidos y aportes no parenterales</div>
+    <div class="grid">
+      <label class="f">Líquidos totales <span class="u">(mL/kg/d)</span><input id="fl" type="number" inputmode="decimal" value="90"></label>
+      <label class="f">Otras infusiones IV <span class="u">(mL/kg/d)</span><input id="oth" type="number" inputmode="decimal" value="0"></label>
+      <label class="f">Enteral <span class="u">(mL/kg/d)</span><input id="ent" type="number" inputmode="decimal" value="0"></label>
+      <label class="f">Enteral: kcal/100 mL<input id="entK" type="number" inputmode="decimal" value="67"></label>
+      <label class="f">Enteral: proteína g/100 mL<input id="entP" type="number" inputmode="decimal" value="1.3"></label>
+      <label class="f">Enteral: CHO g/100 mL<input id="entC" type="number" inputmode="decimal" value="7"></label>
+    </div>
+    <p class="muted" style="font-size:.78rem;margin:8px 0 0">Otras infusiones: línea arterial, fármacos en infusión continua, purgas. Ej.: CAU a 0.5 mL/h en 0.8 kg = 0.5×24/0.8 = 15 mL/kg/d.</p>
+    <div class="btns"><button class="btn pri" id="sug" type="button">✦ Aplicar metas sugeridas (peso + DDV)</button></div>
+    <p class="muted" style="font-size:.76rem;margin:6px 0 0">Las metas sugeridas siguen ESPGHAN/ESPEN/ESPR/CSPEN 2018 y ASPEN 2023, se ajustan por PEG, diuresis y por la fracción enteral. Siempre son editables.</p>
+  </div>
+
+  <div class="card">
+    <div class="sectlabel">3 · Metas parenterales por kg/día</div>
+    <div class="grid3">
+      <label class="f">VIG <span class="u">mg/kg/min</span><input id="gir" type="number" inputmode="decimal" step="0.5" value="5"></label>
+      <label class="f">Aminoácidos <span class="u">g/kg</span><input id="aa" type="number" inputmode="decimal" step="0.1" value="2"></label>
+      <label class="f">Lípidos <span class="u">g/kg</span><input id="lip" type="number" inputmode="decimal" step="0.5" value="1"></label>
+      <label class="f">Na⁺ <span class="u">mmol/kg</span><input id="na" type="number" inputmode="decimal" step="0.5" value="1"></label>
+      <label class="f">K⁺ <span class="u">mmol/kg</span><input id="k" type="number" inputmode="decimal" step="0.5" value="0"></label>
+      <label class="f">Acetato <span class="u">% del Na</span><input id="acf" type="number" inputmode="numeric" step="25" value="0" min="0" max="100"></label>
+      <label class="f">Ca²⁺ <span class="u">mmol/kg</span><input id="ca" type="number" inputmode="decimal" step="0.1" value="0.8"></label>
+      <label class="f">Fosfato <span class="u">mmol/kg</span><input id="p" type="number" inputmode="decimal" step="0.1" value="1"></label>
+      <label class="f">Mg²⁺ <span class="u">mmol/kg</span><input id="mg" type="number" inputmode="decimal" step="0.05" value="0.1"></label>
+    </div>
+    <label class="chk"><input type="checkbox" id="vit" checked> Vitaminas (hidro y liposolubles)</label>
+    <label class="chk"><input type="checkbox" id="tr"> Oligoelementos pediátricos</label>
+    <label class="chk"><input type="checkbox" id="zn"> Completar zinc hasta 400 µg/kg/d (prematuro)</label>
+    <label class="chk"><input type="checkbox" id="hep" checked> Heparina 0.5 UI/mL (solo vía central)</label>
+    <div class="grid" style="margin-top:6px">
+      <label class="f">Sobrellenado bolsa acuosa <span class="u">(mL)</span><input id="ovA" type="number" inputmode="decimal" value="0"></label>
+      <label class="f">Sobrellenado jeringa lípidos <span class="u">(mL)</span><input id="ovL" type="number" inputmode="decimal" value="0"></label>
+    </div>
+  </div>
+
+  <div id="out"></div>
+</section>
+
+<!-- ============ METAS ============ -->
+<section class="tab" id="t-metas">
+  <div class="card">
+    <h2>Metas por fase</h2>
+    <p class="muted">Rangos parenterales para prematuros, por kg/día. Fase de transición: primeros 1–5 días; fase intermedia: hasta la recuperación del peso al nacer; fase de crecimiento estable: después.</p>
+    <div class="scroll"><table class="t">
+      <tr><th>Nutriente</th><th>Día 1</th><th>Día 2–4</th><th>Crecimiento estable</th></tr>
+      <tr><td>Energía (kcal)</td><td class="n">45–55</td><td class="n">↑ progresivo</td><td class="n">90–120</td></tr>
+      <tr><td>Aminoácidos (g)</td><td class="n">≥1.5 (1.5–2.5)</td><td class="n">2.5–3.5</td><td class="n">2.5–3.5</td></tr>
+      <tr><td>Kcal no proteicas</td><td class="n">—</td><td class="n">&gt;65</td><td class="n">&gt;65</td></tr>
+      <tr><td>Glucosa (mg/kg/min)</td><td class="n">4–8</td><td class="n">8–10</td><td class="n">8–10 (mín 4, máx 12)</td></tr>
+      <tr><td>Lípidos (g)</td><td class="n">desde el día 1–2</td><td class="n">↑ 0.5–1/día</td><td class="n">3–3.5 (máx 4)</td></tr>
+      <tr><td>Ca²⁺ (mmol)</td><td class="n">0.8–2.0</td><td class="n">ídem</td><td class="n">1.6–3.5</td></tr>
+      <tr><td>Fosfato (mmol)</td><td class="n">1.0–2.0</td><td class="n">ídem</td><td class="n">1.6–3.5</td></tr>
+      <tr><td>Ca:P molar</td><td class="n">0.8–1.0</td><td class="n">0.8–1.0</td><td class="n">≈1.3 (o menor con AA altos)</td></tr>
+      <tr><td>Mg²⁺ (mmol)</td><td class="n">0.1–0.2</td><td class="n">0.1–0.2</td><td class="n">0.2–0.3</td></tr>
+      <tr><td>Na⁺ (mmol)</td><td class="n">0–2 (0–3 EBPN)</td><td class="n">2–5</td><td class="n">3–5 (hasta 7)</td></tr>
+      <tr><td>K⁺ (mmol)</td><td class="n">0–3</td><td class="n">1–3</td><td class="n">2–5</td></tr>
+      <tr><td>Cl⁻</td><td colspan="3">Algo menor que Na⁺+K⁺ (diferencia 1–2 mmol/kg) para evitar acidosis hiperclorémica: usar acetato.</td></tr>
+    </table></div>
+    <p class="muted" style="font-size:.78rem">Fuente principal: ESPGHAN/ESPEN/ESPR/CSPEN 2018 (energía, AA, lípidos, carbohidratos, líquidos/electrolitos, Ca/P/Mg). Con ajustes de ASPEN 2023 y del ensayo ProVIDe.</p>
+  </div>
+
+  <div class="card">
+    <h3>Líquidos totales (mL/kg/d) — ESPGHAN 2018</h3>
+    <div class="scroll"><table class="t">
+      <tr><th>Día</th><th>&gt;1500 g</th><th>1000–1500 g</th><th>&lt;1000 g</th></tr>
+      <tr><td>1</td><td class="n">60–80</td><td class="n">70–90</td><td class="n">80–100</td></tr>
+      <tr><td>2</td><td class="n">80–100</td><td class="n">90–110</td><td class="n">100–120</td></tr>
+      <tr><td>3</td><td class="n">100–120</td><td class="n">110–130</td><td class="n">120–140</td></tr>
+      <tr><td>4</td><td class="n">120–140</td><td class="n">130–150</td><td class="n">130–150</td></tr>
+      <tr><td>5</td><td class="n">140–160</td><td class="n">160–180</td><td class="n">140–160</td></tr>
+      <tr><td>Estable</td><td class="n" colspan="3">140–160 (individualizar)</td></tr>
+    </table></div>
+    <p class="muted" style="font-size:.78rem">Prematuros de 22–25 semanas en incubadora sin humedad alta pueden necesitar más; guiarse por Na⁺, peso (pérdida esperada 7–10 % en la primera semana), diuresis y balance.</p>
+  </div>
+
+  <div class="card">
+    <h3>Micronutrientes (por kg/d)</h3>
+    <ul class="tight">
+      <li><b>Zinc:</b> 400–500 µg en prematuros (desde el inicio de la NP).</li>
+      <li><b>Cobre:</b> 40 µg; en colestasis no suspender: vigilar Cu sérico/ceruloplasmina.</li>
+      <li><b>Selenio:</b> 7 µg.</li>
+      <li><b>Manganeso:</b> ≤1 µg; suspender en colestasis.</li>
+      <li><b>Yodo:</b> 1–10 µg. <b>Hierro:</b> no de rutina en NP corta.</li>
+      <li><b>Vitaminas:</b> desde el inicio; liposolubles en la emulsión lipídica (tipo Vitalipid® Infant 4 mL/kg, máx. 10 mL) e hidrosolubles (tipo Soluvit® 1 mL/kg, máx. 10 mL).</li>
+    </ul>
+    <p class="muted" style="font-size:.78rem">Los preparados pediátricos de oligoelementos (tipo Peditrace® 1 mL/kg) aportan ~250 µg Zn y 2 µg Se por mL: no cubren al prematuro sin suplementos separados.</p>
+  </div>
+
+  <div class="card dark">
+    <h3>Cuatro decisiones que no se negocian</h3>
+    <ul class="tight">
+      <li>Iniciar NP en las primeras horas en &lt;1500 g o cuando la enteral no avanzará pronto.</li>
+      <li>Fosfato desde el día 1 si se dan AA ≥1.5–2 g/kg (≥1 mmol/kg), con Ca:P molar ≤1.</li>
+      <li>Lípidos desde el día 1–2; emulsión compuesta (con o sin aceite de pescado) en vez de soya pura.</li>
+      <li>Proteger de la luz bolsa, jeringa y líneas.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============ MONITOREO ============ -->
+<section class="tab" id="t-monit">
+  <div class="card">
+    <h2>Monitoreo</h2>
+    <div class="scroll"><table class="t">
+      <tr><th>Parámetro</th><th>Inicio / avance</th><th>Estable</th></tr>
+      <tr><td>Glucemia</td><td>c/4–8 h los primeros días; c/1–2 h si hay insulina</td><td>diaria o según clínica</td></tr>
+      <tr><td>Na, K, Cl, HCO₃⁻/GSA</td><td>c/12–24 h</td><td>2–3/semana</td></tr>
+      <tr><td>P y Ca (iónico ideal)</td><td>diario días 1–5 (PEG/RCIU y &lt;1000 g: imprescindible)</td><td>semanal</td></tr>
+      <tr><td>Mg</td><td>a las 48–72 h</td><td>semanal</td></tr>
+      <tr><td>Triglicéridos</td><td>tras cada aumento de lípidos (≥3 g/kg) o en sepsis/hiperglucemia</td><td>semanal</td></tr>
+      <tr><td>BUN/creatinina</td><td>a las 48–72 h</td><td>semanal</td></tr>
+      <tr><td>Bilirrubina directa/conjugada, GGT, ALT</td><td>basal a la semana</td><td>c/1–2 semanas si NP &gt;14 días</td></tr>
+      <tr><td>Fosfatasa alcalina</td><td>—</td><td>c/2 semanas desde la 3.ª semana</td></tr>
+      <tr><td>Peso / longitud / PC</td><td>peso diario</td><td>longitud y PC semanal</td></tr>
+      <tr><td>Balance hídrico y diuresis</td><td colspan="2">cada turno</td></tr>
+    </table></div>
+    <p class="muted" style="font-size:.78rem">El BUN alto con aporte proteico alto y sin falla renal suele reflejar oxidación de AA, no toxicidad; interpretar con la energía no proteica. El amonio no se mide de rutina.</p>
+  </div>
+  <div class="card">
+    <h3>Rangos objetivo prácticos</h3>
+    <ul class="tight">
+      <li>Glucemia: 50–150 mg/dL (2.8–8.3 mmol/L). Evitar &lt;45 mg/dL.</li>
+      <li>Fósforo sérico: 5.5–9 mg/dL en prematuros; &lt;4 mg/dL = hipofosfatemia, &lt;3.1 mg/dL (1 mmol/L) = severa.</li>
+      <li>Calcio total: 8–11 mg/dL; iónico 1.1–1.4 mmol/L.</li>
+      <li>Triglicéridos: &lt;265 mg/dL (3 mmol/L); muchas unidades actúan desde 200 mg/dL.</li>
+      <li>Bilirrubina directa/conjugada: &gt;1 mg/dL = colestasis.</li>
+    </ul>
+  </div>
+  <div class="card">
+    <h3>Seguridad de la preparación y la vía</h3>
+    <ul class="tight">
+      <li>Vía periférica: dextrosa ≤12.5 % y osmolaridad ≲900 mOsm/L. Por encima, vía central.</li>
+      <li>Punta de CVU/PICC fuera del corazón, confirmada por imagen (radiografía o ecografía).</li>
+      <li>Filtros: 0.2 µm para la fase acuosa; 1.2 µm para lípidos o mezclas 3 en 1.</li>
+      <li>Lípidos solos: colgar ≤12 h por jeringa (dividir en dos si se pasan en 24 h), salvo que el protocolo local o el fabricante indique otra cosa.</li>
+      <li>Fotoprotección de bolsa, jeringa y línea hasta el paciente.</li>
+      <li>NP estandarizada para la mayoría; individualizar cuando las necesidades se apartan (EBPN, PEG, posquirúrgicos, alteraciones electrolíticas).</li>
+      <li>Doble verificación independiente de la orden y del cálculo.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============ COMPLICACIONES ============ -->
+<section class="tab" id="t-compl">
+  <h2>Complicaciones: manejo secuencial</h2>
+
+  <details open><summary>Hiperglucemia</summary><div class="in">
+    <p>Definir: glucemia &gt;150 mg/dL repetida. Actuar con firmeza si &gt;180 mg/dL (10 mmol/L).</p>
+    <ol class="tight">
+      <li>Buscar la causa: sepsis, esteroides, dolor/estrés, error de VIG, catecolaminas.</li>
+      <li>Bajar la VIG de 1 en 1 mg/kg/min, <b>sin bajar de 4</b>.</li>
+      <li><b>No suspender los AA</b>: estimulan la secreción de insulina; mantener 2.5–3.5 g/kg.</li>
+      <li>Si persiste &gt;180–200 mg/dL con VIG 4: insulina regular 0.01–0.05 UI/kg/h, ajustar por glucemia horaria; meta 120–180 mg/dL; suspender si &lt;120.</li>
+      <li>No usar insulina profiláctica: en el ensayo NIRTURE aumentó la hipoglucemia sin beneficio.</li>
+    </ol>
+  </div></details>
+
+  <details><summary>Hipoglucemia</summary><div class="in">
+    <ol class="tight">
+      <li>&lt;45 mg/dL: bolo de dextrosa 10 % 2 mL/kg y subir VIG 1–2 mg/kg/min.</li>
+      <li>Revisar interrupción de la infusión, infiltración, error de preparación.</li>
+      <li>Si requiere VIG &gt;12 mg/kg/min, estudiar hiperinsulinismo (usar la Calculadora VIG de la suite).</li>
+    </ol>
+  </div></details>
+
+  <details><summary>Síndrome tipo realimentación (hipofosfatemia, hipercalcemia, hipopotasemia)</summary><div class="in">
+    <p><b>Quién:</b> PEG/RCIU, &lt;1000 g, madre con preeclampsia o sufrimiento fetal, AA altos sin fosfato suficiente.</p>
+    <p><b>Mecanismo:</b> el anabolismo proteico arrastra P y K hacia la célula; sin P, el Ca no se deposita en hueso y sube en sangre.</p>
+    <ol class="tight">
+      <li>Prevención: P ≥1 mmol/kg desde el día 1, Ca:P molar 0.8–1.0, K en cuanto haya diuresis.</li>
+      <li>P &lt;4 mg/dL: subir P 0.5–1 mmol/kg/d (hasta 2–2.5) y <b>bajar Ca</b> para que Ca:P ≤1.</li>
+      <li>P &lt;3.1 mg/dL (1 mmol/L) o Ca total &gt;11–12 mg/dL: además, considerar mantener temporalmente los AA en ~2.5 g/kg (no suspender) hasta corregir; controles c/12–24 h.</li>
+      <li>K bajo: subir K (vigilar diuresis). Mg: mantener ≥0.2 mmol/kg.</li>
+      <li>Asociado a más ventilación prolongada, sepsis, HIV grave y ROP en series observacionales: tratarlo como problema, no como hallazgo.</li>
+    </ol>
+  </div></details>
+
+  <details><summary>Hipertrigliceridemia</summary><div class="in">
+    <ol class="tight">
+      <li>TG &gt;265 mg/dL (3 mmol/L): bajar lípidos 0.5–1 g/kg/d; no suspender del todo (mantener ~0.5–1 g/kg para ácidos grasos esenciales).</li>
+      <li>Revisar sepsis, hiperglucemia, esteroides, velocidad de infusión (no &gt;0.17 g/kg/h: equivale a 4 g/kg en 24 h).</li>
+      <li>Repetir TG a las 24–48 h; reavanzar 0.5 g/kg/d.</li>
+      <li>En fototerapia no hace falta reducir lípidos por la bilirrubina, salvo hiperbilirrubinemia extrema con cifras cercanas a exanguinotransfusión.</li>
+    </ol>
+  </div></details>
+
+  <details><summary>Hiperpotasemia y alteraciones del sodio</summary><div class="in">
+    <ul class="tight">
+      <li>K⁺ &gt;6 mmol/L: suspender K de la NP; ECG; seguir protocolo de hiperpotasemia (ver CDSS Laboratorio Crítico). En EBPN puede ser no oligúrica en las primeras 72 h.</li>
+      <li>Hipernatremia temprana en EBPN: casi siempre agua libre perdida, no exceso de Na; aumentar líquidos y humedad antes de quitar Na.</li>
+      <li>Hiponatremia después de la primera semana: aumentar Na hasta 4–7 mmol/kg; contabilizar el Na del glicerofosfato.</li>
+    </ul>
+  </div></details>
+
+  <details><summary>Acidosis metabólica hiperclorémica</summary><div class="in">
+    <ol class="tight">
+      <li>Cl⁻ alto con brecha aniónica normal: reemplazar parte del NaCl por acetato de sodio (25–50–100 %).</li>
+      <li>Objetivo: Cl⁻ ingresado 1–2 mmol/kg por debajo de Na⁺+K⁺.</li>
+      <li>No usar bicarbonato en la NP (precipita con Ca).</li>
+    </ol>
+  </div></details>
+
+  <details><summary>Colestasis asociada a NP (PNAC/IFALD)</summary><div class="in">
+    <p>Bilirrubina directa/conjugada &gt;1 mg/dL con NP ≥14 días, tras descartar otras causas (sepsis, obstrucción, infección congénita, metabólica: ver CDSS Colestasis).</p>
+    <ol class="tight">
+      <li>Avanzar la enteral tanto como sea posible (incluso trófica).</li>
+      <li>Emulsión compuesta con aceite de pescado; considerar bajar lípidos a 1–2 g/kg/d evitando el déficit de ácidos grasos esenciales.</li>
+      <li>Colestasis establecida y NP prolongada: aceite de pescado puro (tipo Omegaven®) 1 g/kg/d.</li>
+      <li>Evitar sobrealimentación (VIG excesiva → esteatosis); considerar ciclar la NP en el lactante estable.</li>
+      <li>Retirar manganeso; no suspender cobre de forma automática: medir y ajustar.</li>
+      <li>Ácido ursodesoxicólico cuando haya tolerancia enteral.</li>
+      <li>Tratar y prevenir la sepsis por catéter (ver CDSS Sepsis Tardía).</li>
+    </ol>
+  </div></details>
+
+  <details><summary>Infiltración y extravasación</summary><div class="in">
+    <ol class="tight">
+      <li>Detener la infusión; aspirar por la cánula antes de retirarla; elevar el miembro.</li>
+      <li>Marcar los bordes y fotografiar; valorar perfusión distal.</li>
+      <li>Lesión grave: hialuronidasa subcutánea en abanico según protocolo local; interconsulta a cirugía plástica si hay necrosis.</li>
+      <li>Prevención: respetar límites de dextrosa y osmolaridad periféricas; revisar el sitio cada hora.</li>
+    </ol>
+  </div></details>
+
+  <details><summary>Transición a enteral y suspensión</summary><div class="in">
+    <ul class="tight">
+      <li>Al avanzar la enteral, reducir la NP para mantener el aporte total; la calculadora resta la enteral de los líquidos y de las metas.</li>
+      <li>Práctica habitual: suspender lípidos IV con enteral ~100–120 mL/kg/d y la NP acuosa con ~120–140 mL/kg/d bien tolerados (ajustar al protocolo local de avance).</li>
+      <li>Vigilar hipoglucemia al retirar la NP y la proteína total (la leche humana sin fortificar no cubre la meta).</li>
+      <li>Para el avance enteral, usar Gota a Gota.</li>
+    </ul>
+  </div></details>
+</section>
+
+<!-- ============ CASOS ============ -->
+<section class="tab" id="t-casos">
+  <h2>Casos clínicos</h2>
+  <p class="muted">Cada caso puede cargarse en la calculadora. Primero piense la respuesta; después abra la discusión.</p>
+  <div id="cases"></div>
+</section>
+
+<!-- ============ EVIDENCIA ============ -->
+<section class="tab" id="t-evid">
+  <div class="card">
+    <h2>Qué dice la evidencia (actualizado a nov 2026)</h2>
+    <ol class="tight">
+      <li><b>Más proteína temprana no es mejor.</b> ProVIDe (NEJM 2022): +1 g/día de AA los primeros 5 días en &lt;1000 g, sobre una NP que ya daba 2.5–3.5 g/kg/d, no aumentó la supervivencia sin neurodiscapacidad a los 2 años. El techo práctico sigue siendo 3.5 g/kg/d; por encima, solo en investigación.</li>
+      <li><b>El fosfato temprano es parte de la dosis de AA.</b> Dar AA altos sin P suficiente produce hipofosfatemia e hipercalcemia (síndrome tipo realimentación), sobre todo en PEG/RCIU. ESPGHAN 2018 pide ≥1 mmol/kg de P desde los primeros días y relación Ca:P molar &lt;1 al inicio. En el análisis secundario de ProVIDe, el síndrome se asoció a menos P, Ca y Na y más AA en la primera semana; estudios de 2024–2025 confirman a la RCIU y al sufrimiento fetal como factores de riesgo.</li>
+      <li><b>Lípidos desde el día 1–2, emulsión compuesta.</b> ESPGHAN 2018 prefiere emulsiones compuestas (con o sin aceite de pescado) sobre la soya pura en NP de más de unos días; máximo 4 g/kg/d. ASPEN 2023 sugiere ~3 g/kg/d con emulsiones de soya o multicomponentes para prevenir el déficit de ácidos grasos esenciales.</li>
+      <li><b>Glucosa:</b> iniciar con 4–8 mg/kg/min, avanzar a 8–10 y no superar 12; tratar la hiperglucemia bajando VIG sin cortar AA; sin insulina profiláctica (NIRTURE).</li>
+      <li><b>NP estandarizada</b> para la mayoría de los prematuros (ESPGHAN 2018, consenso australasiano 2017), con individualización en casos complejos.</li>
+      <li><b>Fotoprotección</b> obligatoria de la NP: reduce la generación de peróxidos en lípidos y vitaminas.</li>
+      <li>El consenso chino de 2025 y la guía neozelandesa Pēpi Whānau Wawe (revisada en 2025) mantienen el marco ESPGHAN 2018 sin cambios mayores en las metas.</li>
+    </ol>
+  </div>
+  <div class="card">
+    <h3>Supuestos de cálculo</h3>
+    <ul class="tight">
+      <li>Energía: dextrosa 3.4 kcal/g; AA 4 kcal/g; emulsión lipídica 20 % = 2 kcal/mL; Vitalipid® (10 %) = 1.1 kcal/mL y 0.1 g de grasa/mL, que se descuentan de la meta de lípidos.</li>
+      <li>VIG (mg/kg/min) × peso (kg) × 1.44 = gramos de dextrosa/24 h.</li>
+      <li>Osmolaridad estimada: dextrosa 5.05 mOsm/g, AA 10 mOsm/g y la osmolaridad por mL de cada sal (editable). Es una aproximación: farmacia tiene la última palabra.</li>
+      <li>Compatibilidad Ca–P: regla conservadora Ca (mEq/L) + P (mmol/L) ≤30 con fosfato inorgánico; con glicerofosfato el margen es mucho mayor. Verificar siempre con la curva del fabricante de AA.</li>
+      <li>Las metas sugeridas de Na, K, Ca, P y Mg se escalan por la fracción del volumen que es parenteral.</li>
+    </ul>
+  </div>
+  <div class="card">
+    <h3>Referencias</h3>
+    <ol class="tight" style="font-size:.84rem">
+      <li>Joosten K, Embleton N, Yan W, Senterre T; ESPGHAN/ESPEN/ESPR/CSPEN. Guidelines on pediatric parenteral nutrition: Energy. Clin Nutr 2018;37:2309–14.</li>
+      <li>van Goudoever JB, Carnielli V, Darmaun D, Sainz de Pipaon M. … Amino acids. Clin Nutr 2018;37:2315–23.</li>
+      <li>Lapillonne A, Fidler Mis N, Goulet O, et al. … Lipids. Clin Nutr 2018;37:2324–36.</li>
+      <li>Mesotten D, Joosten K, van Kempen A, Verbruggen S. … Carbohydrates. Clin Nutr 2018;37:2337–43.</li>
+      <li>Jochum F, Moltu SJ, Senterre T, et al. … Fluid and electrolytes. Clin Nutr 2018;37:2344–53.</li>
+      <li>Mihatsch W, Fewtrell M, Goulet O, et al. … Calcium, phosphorus and magnesium. Clin Nutr 2018;37:2360–5.</li>
+      <li>Domellöf M, Szitanyi P, Simchowitz V, et al. … Iron and trace minerals. Clin Nutr 2018;37:2354–9.</li>
+      <li>Bronsky J, Campoy C, Braegger C. … Vitamins. Clin Nutr 2018;37:2366–78.</li>
+      <li>Hartman C, Shamir R, Simchowitz V, et al. … Complications. Clin Nutr 2018;37:2418–29.</li>
+      <li>Riskin A, Picaud JC, Shamir R. … Standard versus individualized parenteral nutrition. Clin Nutr 2018;37:2409–17.</li>
+      <li>Robinson DT, Calkins KL, Chen Y, et al. Guidelines for parenteral nutrition in preterm infants: ASPEN. JPEN 2023;47:830–58.</li>
+      <li>NICE NG154. Neonatal parenteral nutrition. 2020.</li>
+      <li>Bloomfield FH, Jiang Y, Harding JE, et al. Early amino acids in extremely preterm infants and neurodisability at 2 years (ProVIDe). N Engl J Med 2022;387:1661–72.</li>
+      <li>Bonsante F, Iacobelli S, Latorre G, et al. Initial amino acid intake influences phosphorus and calcium homeostasis in preterm infants. PLoS One 2013;8:e72880.</li>
+      <li>Boubred F, Herlenius E, Bartocci M, et al. Extremely preterm infants who are small for gestational age have a high risk of early hypophosphatemia and hypokalemia. Acta Paediatr 2015;104:1077–83.</li>
+      <li>Galletti MF, Brener Dik PH, Fernández Jonusas SA, et al. Early high amino-acid intake is associated with hypophosphatemia in preterm infants. J Perinatol 2022;42:1063–9.</li>
+      <li>Robinson DT, Taylor SN, Moya F. Preterm infant nutrition: considerations for infants at risk of refeeding syndrome. J Perinatol 2023;43:120–3.</li>
+      <li>Di Chiara M, Spiriti C, Gloria F, et al. Fetal distress as a determinant for refeeding syndrome in preterm neonates. Nutrients 2025;17:1417.</li>
+      <li>Notarbartolo V, Carta M, Badiane BA, et al. Calcium-phosphorus-magnesium axis and the metabolic issue of newborns undergoing parenteral nutrition. Nutrients 2025;17:775.</li>
+      <li>Kapoor V, Malviya MN, Soll R. Lipid emulsions for parenterally fed preterm infants. Cochrane Database Syst Rev 2019;6:CD013163.</li>
+      <li>Beardsall K, Vanhaesebrouck S, Ogilvy-Stuart AL, et al. Early insulin therapy in very-low-birth-weight infants (NIRTURE). N Engl J Med 2008;359:1873–84.</li>
+      <li>Bolisetty S, Osborn D, Schindler T, et al. Standardised neonatal parenteral nutrition formulations: Australasian consensus update 2017. BMC Pediatr 2020;20:59.</li>
+      <li>Expert consensus on parenteral nutrition management in neonates (2025). Chin J Contemp Pediatr 2025;27:247–61.</li>
+    </ol>
+  </div>
+  <div class="alert warn">Herramienta de apoyo a la decisión. No reemplaza el juicio clínico, el protocolo institucional ni la validación de farmacia. Verifique concentraciones de los productos disponibles en su hospital (⚙).</div>
+</section>
+
+<div class="foot">SAVIA · CDSS de nutrición parenteral del prematuro · v1.0<br>Dr. Jano Jaramillo — Médico Pediatra y Neonatólogo · Posgrado en Trastornos del Aprendizaje</div>
+</main>
+
+<!-- ============ CONCENTRACIONES ============ -->
+<div class="drawer" id="cfg">
+  <div class="sheet">
+    <h3>Concentraciones de farmacia</h3>
+    <p class="muted" style="font-size:.82rem">Ajuste a los productos de su hospital. Se guardan en este dispositivo.</p>
+    <div class="grid" id="cfgGrid"></div>
+    <div class="btns">
+      <button class="btn pri" id="cfgSave" type="button">Guardar</button>
+      <button class="btn ghost" id="cfgReset" type="button">Restablecer</button>
+      <button class="btn ghost" id="cfgClose" type="button">Cerrar</button>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+'use strict';
+var $=function(id){return document.getElementById(id)};
+function num(id){var v=parseFloat(String($(id).value).replace(',','.'));return isFinite(v)?v:0}
+function r(x,d){var m=Math.pow(10,d==null?1:d);return Math.round(x*m)/m}
+function fx(x,d){return (isFinite(x)?r(x,d):0).toFixed(d==null?1:d)}
+function toast(t){var e=$('toast');e.textContent=t;e.classList.add('on');setTimeout(function(){e.classList.remove('on')},1800)}
+
+/* ---------- carátula ---------- */
+function hideCover(){var c=$('cover');c.classList.add('gone');setTimeout(function(){c.style.display='none'},650);try{sessionStorage.setItem('savia_seen','1')}catch(e){}}
+$('enter').addEventListener('click',hideCover);
+$('brand').addEventListener('click',function(){var c=$('cover');c.style.display='flex';requestAnimationFrame(function(){c.classList.remove('gone')})});
+try{if(sessionStorage.getItem('savia_seen')){$('cover').style.display='none'}}catch(e){}
+
+/* ---------- pestañas ---------- */
+var tabs=document.querySelectorAll('#tabs button');
+function showTab(t){for(var i=0;i<tabs.length;i++){tabs[i].classList.toggle('on',tabs[i].getAttribute('data-t')===t)}
+  var s=document.querySelectorAll('section.tab');for(var j=0;j<s.length;j++){s[j].classList.toggle('on',s[j].id==='t-'+t)}window.scrollTo(0,0)}
+for(var i=0;i<tabs.length;i++){tabs[i].addEventListener('click',function(){showTab(this.getAttribute('data-t'))})}
+
+/* ---------- concentraciones ---------- */
+var CFG_DEF={
+  cAA:{v:0.1,l:'Aminoácidos 10 % (g/mL)'},
+  cDexHi:{v:0.5,l:'Dextrosa alta 50 % (g/mL)'},
+  cDexLo:{v:0.1,l:'Dextrosa baja 10 % (g/mL)'},
+  cLip:{v:0.2,l:'Emulsión lipídica 20 % (g/mL)'},
+  cNaCl:{v:3.4,l:'NaCl 20 % (mEq/mL)'},
+  osNaCl:{v:6.8,l:'NaCl: mOsm/mL'},
+  cNaAc:{v:2,l:'Acetato de Na (mEq/mL)'},
+  osNaAc:{v:4,l:'Acetato de Na: mOsm/mL'},
+  cKCl:{v:2,l:'KCl (mEq/mL)'},
+  osKCl:{v:4,l:'KCl: mOsm/mL'},
+  cCa:{v:0.23,l:'Gluconato de Ca 10 % (mmol Ca/mL)'},
+  osCa:{v:0.68,l:'Gluconato de Ca: mOsm/mL'},
+  cMg:{v:2.0,l:'MgSO₄ 50 % (mmol/mL)'},
+  osMg:{v:4.06,l:'MgSO₄: mOsm/mL'},
+  pSrc:{v:'gly',l:'Fuente de fosfato'},
+  cHep:{v:1000,l:'Heparina (UI/mL)'},
+  cZn:{v:1000,l:'Zinc suplemento (µg/mL)'},
+  vitLipMLkg:{v:4,l:'Vit. liposolubles (mL/kg, máx 10)'},
+  vitHidMLkg:{v:1,l:'Vit. hidrosolubles (mL/kg, máx 10)'},
+  trMLkg:{v:1,l:'Oligoelementos (mL/kg, máx 15)'},
+  trZn:{v:250,l:'Oligoelementos: Zn µg/mL'}
+};
+var PSRC={gly:{l:'Glicerofosfato sódico (1 mmol P + 2 mEq Na/mL)',p:1,na:2,k:0,os:3,org:true},
+  kp:{l:'Fosfato de potasio (3 mmol P + 4.4 mEq K/mL)',p:3,na:0,k:4.4,os:7.4,org:false},
+  nap:{l:'Fosfato de sodio (3 mmol P + 4 mEq Na/mL)',p:3,na:4,k:0,os:7,org:false}};
+var CFG={};
+function loadCfg(){var s={};try{s=JSON.parse(localStorage.getItem('savia_cfg')||'{}')}catch(e){}
+  for(var k in CFG_DEF){CFG[k]=(s[k]!==undefined)?s[k]:CFG_DEF[k].v}}
+function buildCfg(){var g=$('cfgGrid');g.innerHTML='';
+  for(var k in CFG_DEF){var lab=document.createElement('label');lab.className='f';
+    if(k==='pSrc'){var opts='';for(var p in PSRC){opts+='<option value="'+p+'"'+(CFG.pSrc===p?' selected':'')+'>'+PSRC[p].l+'</option>'}
+      lab.style.gridColumn='1 / -1';lab.innerHTML=CFG_DEF[k].l+'<select data-k="'+k+'">'+opts+'</select>'}
+    else{lab.innerHTML=CFG_DEF[k].l+'<input type="number" inputmode="decimal" step="any" data-k="'+k+'" value="'+CFG[k]+'">'}
+    g.appendChild(lab)}}
+$('openCfg').addEventListener('click',function(){buildCfg();$('cfg').classList.add('on')});
+$('cfgClose').addEventListener('click',function(){$('cfg').classList.remove('on')});
+$('cfgSave').addEventListener('click',function(){var els=$('cfgGrid').querySelectorAll('[data-k]');
+  for(var i=0;i<els.length;i++){var k=els[i].getAttribute('data-k');CFG[k]=(k==='pSrc')?els[i].value:(parseFloat(els[i].value)||CFG_DEF[k].v)}
+  try{localStorage.setItem('savia_cfg',JSON.stringify(CFG))}catch(e){}$('cfg').classList.remove('on');calc();toast('Concentraciones guardadas')});
+$('cfgReset').addEventListener('click',function(){try{localStorage.removeItem('savia_cfg')}catch(e){}loadCfg();buildCfg();calc()});
+
+/* ---------- metas sugeridas ---------- */
+function band(g){return g<1000?2:(g<=1500?1:0)}
+var FL_SUG=[[70,80,90],[90,100,110],[110,120,130],[130,140,140],[150,160,150]];
+var FL_RNG=[[[60,80],[70,90],[80,100]],[[80,100],[90,110],[100,120]],[[100,120],[110,130],[120,140]],[[120,140],[130,150],[130,150]],[[140,160],[160,180],[140,160]]];
+function flRange(d,b){return d<=5?FL_RNG[d-1][b]:[140,160]}
+function round05(x){return Math.round(x*2)/2}
+
+function suggest(){
+  var g=num('peso'),d=Math.max(1,Math.round(num('ddv'))),b=band(g),peg=$('peg').checked,diur=$('diur').checked;
+  var fl=d<=5?FL_SUG[d-1][b]:150;
+  $('fl').value=fl;
+  var ent=num('ent'),oth=num('oth');
+  var pnFrac=Math.max(0,Math.min(1,(fl-ent-oth)/fl));
+  // VIG
+  var gb=d===1?(b===2?5:6):d===2?(b===2?6:7):d===3?(b===2?7:8):d<=6?(b===2?8:9):(b===2?9:10);
+  var entCHO=ent*num('entC')/100*1000/1440;
+  var gir=gb-entCHO; gir=Math.max(pnFrac>=0.5?4:2,gir); $('gir').value=r(gir*2,0)/2;
+  // AA (meta proteica total menos enteral)
+  var aaT=d===1?2.0:d===2?3.0:(b===0?3.0:3.5);
+  var aa=Math.max(0,aaT-ent*num('entP')/100); $('aa').value=r(aa,1);
+  // lípidos
+  var lb=d===1?1:d===2?2:3, lip;
+  if(ent>=100){lip=0}else{lip=round05(lb*(1-ent/150));if(lip<0.5)lip=0.5}
+  $('lip').value=lip;
+  // electrolitos (escalados por fracción parenteral)
+  var na=d===1?1:d===2?2:d<=5?3:(b===2?4:3);
+  var k=!diur?0:(d===1?1:d===2?1.5:2);
+  var ca,p;
+  if(d===1){ca=0.8;p=peg?1.3:1.0}
+  else if(d===2){ca=1.2;p=peg?1.6:1.3}
+  else if(d===3){ca=1.6;p=peg?1.8:1.6}
+  else if(d<=6){ca=1.8;p=peg?2.0:1.8}
+  else{ca=peg?2.2:2.4;p=2.0}
+  var mg=d===1?0.1:d<=6?0.2:0.25;
+  $('na').value=r(na*pnFrac,1);$('k').value=r(k*pnFrac,1);$('ca').value=r(ca*pnFrac,1);$('p').value=r(p*pnFrac,1);$('mg').value=r(mg*pnFrac,2);
+  $('acf').value=(d>=3&&b===2)?50:0;
+  $('vit').checked=true; $('tr').checked=d>=2; $('zn').checked=d>=2&&g<2500;
+  $('hep').checked=$('acc').value==='c';
+  calc(); toast('Metas sugeridas aplicadas');
+}
+$('sug').addEventListener('click',suggest);
+
+/* ---------- cálculo ---------- */
+var last=null;
+function calc(){
+  var g=num('peso'),kg=g/1000,d=Math.max(1,Math.round(num('ddv'))),b=band(g),central=$('acc').value==='c',peg=$('peg').checked,diur=$('diur').checked;
+  var fl=num('fl'),ent=num('ent'),oth=num('oth');
+  var gir=num('gir'),aa=num('aa'),lip=num('lip'),na=num('na'),k=num('k'),acf=Math.max(0,Math.min(100,num('acf')))/100,ca=num('ca'),p=num('p'),mg=num('mg');
+  var vitOn=$('vit').checked,trOn=$('tr').checked,znOn=$('zn').checked,hepOn=$('hep').checked&&central;
+  var PS=PSRC[CFG.pSrc]||PSRC.gly;
+  var A=[]; // alertas
+  if(kg<=0){$('out').innerHTML='<div class="alert bad">Ingrese el peso.</div>';return}
+
+  var Vt=fl*kg,Ve=ent*kg,Vo=oth*kg,Vnp=Vt-Ve-Vo;
+  var vitLip=vitOn?Math.min(CFG.vitLipMLkg*kg,10):0, fatVit=vitLip*0.1;
+  var lipG=lip*kg, lipEmG=Math.max(0,lipG-fatVit), VlipEm=lipEmG/CFG.cLip, Vlip=VlipEm+vitLip;
+  var Vaq=Vnp-Vlip;
+  var gAA=aa*kg,VAA=gAA/CFG.cAA;
+  var mP=p*kg,VP=mP/PS.p,NaP=VP*PS.na,KP=VP*PS.k;
+  var mNa=na*kg,remNa=mNa-NaP; if(remNa<-0.05)A.push(['warn','El fosfato elegido ya aporta '+fx(NaP/kg,1)+' mmol/kg de Na, más que la meta de Na. Se omite NaCl/acetato.']); remNa=Math.max(0,remNa);
+  var VNaAc=remNa*acf/CFG.cNaAc,VNaCl=remNa*(1-acf)/CFG.cNaCl;
+  var remK=k*kg-KP; if(remK<-0.05)A.push(['warn','El fosfato de potasio ya aporta '+fx(KP/kg,1)+' mmol/kg de K, más que la meta.']); remK=Math.max(0,remK);
+  var VKCl=remK/CFG.cKCl;
+  var VCa=ca*kg/CFG.cCa,VMg=mg*kg/CFG.cMg;
+  var Vtr=trOn?Math.min(CFG.trMLkg*kg,15):0, znTr=Vtr*CFG.trZn, znExtra=znOn?Math.max(0,400*kg-znTr):0, VZn=znExtra/CFG.cZn;
+  var Vsol=vitOn?Math.min(CFG.vitHidMLkg*kg,10):0;
+  var hepU=hepOn?0.5*Math.max(Vaq,0):0,VHep=hepU/CFG.cHep;
+  var Vfix=VAA+VP+VNaAc+VNaCl+VKCl+VCa+VMg+Vtr+VZn+Vsol+VHep;
+  var Vdw=Vaq-Vfix, gDex=gir*kg*1.44;
+  var VD50=gDex/CFG.cDexHi, Vw=Vdw-VD50;
+  var VD10b,VD50b,Vw2;
+  if(gDex<=Vdw*CFG.cDexLo){VD10b=gDex/CFG.cDexLo;VD50b=0;Vw2=Vdw-VD10b}
+  else{VD50b=(gDex-CFG.cDexLo*Vdw)/(CFG.cDexHi-CFG.cDexLo);VD10b=Vdw-VD50b;Vw2=0}
+  var feasible=Vnp>0&&Vaq>0&&Vw>=-0.01;
+  var dexC=Vaq>0?gDex/Vaq*100:0;
+  var osm=Vaq>0?(gDex*5.05+gAA*10+VNaCl*CFG.osNaCl+VNaAc*CFG.osNaAc+VKCl*CFG.osKCl+VCa*CFG.osCa+VMg*CFG.osMg+VP*PS.os)/(Vaq/1000):0;
+  var kDex=gDex*3.4,kAA=gAA*4,kLip=VlipEm*2.0+vitLip*1.1,kEnt=Ve*num('entK')/100;
+  var kNP=(kDex+kLip)/kg,kPN=(kDex+kAA+kLip)/kg,kTot=(kDex+kAA+kLip+kEnt)/kg;
+  var protTot=aa+ent*num('entP')/100;
+  var caL=Vaq>0?ca*kg/(Vaq/1000):0,pL=Vaq>0?mP/(Vaq/1000):0;
+  var caP=p>0?ca/p:0;
+  var clKg=(VNaCl*CFG.cNaCl+VKCl*CFG.cKCl)/kg, naTot=(remNa+NaP)/kg, kTot2=(remK+KP)/kg;
+  var lipRate=lip/24;
+  var fA=(Vaq>0&&num('ovA')>0)?(Vaq+num('ovA'))/Vaq:1, fL=(Vlip>0&&num('ovL')>0)?(Vlip+num('ovL'))/Vlip:1;
+
+  /* ---- alertas ---- */
+  if(Vnp<=0)A.push(['bad','No queda volumen para NP: la enteral y otras infusiones cubren los líquidos totales.']);
+  else if(Vaq<=0)A.push(['bad','El volumen de lípidos supera el volumen parenteral disponible.']);
+  else if(Vw<-0.01)A.push(['bad','Imposible con D50 en este volumen: faltan '+fx(-Vw,1)+' mL. Baje VIG o electrolitos, o aumente líquidos.']);
+  var rg=flRange(d,b); if(fl<rg[0]||fl>rg[1])A.push(['info','Líquidos '+fl+' mL/kg/d fuera del rango ESPGHAN para día '+Math.min(d,6)+(d>5?'+':'')+' y este peso ('+rg[0]+'–'+rg[1]+'). Puede ser correcto; justifíquelo con Na, peso y diuresis.']);
+  if(gir<4&&Vnp/Vt>=0.5)A.push(['warn','VIG <4 mg/kg/min con NP predominante: riesgo de hipoglucemia y catabolismo.']);
+  if(gir>12)A.push(['bad','VIG >12 mg/kg/min supera la oxidación máxima de glucosa: lipogénesis, esteatosis, más CO₂.']);
+  else if(gir>=12)A.push(['warn','VIG 12 mg/kg/min: en el techo de oxidación de glucosa. Si no hay hipoglucemia, considere 10–11.']);
+  if($('col').checked){
+    A.push(['bad','Colestasis: emulsión compuesta con aceite de pescado (no soya pura); considerar lípidos 1–2 g/kg/d; si progresa, aceite de pescado puro 1 g/kg/d. Evitar VIG excesiva, retirar manganeso, medir cobre, avanzar enteral.']);
+    if(lip>2)A.push(['warn','Lípidos '+fx(lip,1)+' g/kg/d con colestasis: valore reducir a 1–2 g/kg/d.']);
+    if(gir>10)A.push(['warn','VIG '+fx(gir,1)+' con colestasis: la sobrecarga de glucosa favorece la esteatosis.']);
+  }
+  if(!central&&dexC>12.5)A.push(['bad','Dextrosa '+fx(dexC,1)+' % por vía periférica (máx. 12.5 %). Use vía central o baje VIG.']);
+  if(central&&dexC>25)A.push(['warn','Dextrosa '+fx(dexC,1)+' %: concentración muy alta incluso por vía central.']);
+  if(!central&&osm>900)A.push(['bad','Osmolaridad estimada '+fx(osm,0)+' mOsm/L por vía periférica (≲900).']);
+  if(aa>3.5)A.push(['bad','AA >3.5 g/kg/d: sin beneficio demostrado (ProVIDe) y más riesgo metabólico. Solo en investigación.']);
+  if(aa<1.5&&Vnp/Vt>=0.5)A.push(['warn','AA <1.5 g/kg/d con NP predominante: balance nitrogenado negativo.']);
+  if(d>=2&&aa>=2.5&&kNP<65&&Vnp/Vt>=0.5)A.push(['warn','Energía no proteica '+fx(kNP,0)+' kcal/kg (<65) con AA ≥2.5: los AA se oxidarán como combustible.']);
+  if(lip>4)A.push(['bad','Lípidos >4 g/kg/d: por encima del máximo ESPGHAN.']);
+  if(lipRate>0.17)A.push(['warn','Infusión lipídica >0.17 g/kg/h: verifique que pase en 24 h.']);
+  if(d>=2&&lip===0&&ent<100)A.push(['warn','Sin lípidos desde el día 2: riesgo de déficit de ácidos grasos esenciales en 48–72 h.']);
+  if(aa>=1.5&&p<1&&Vnp/Vt>=0.5)A.push(['bad','Fosfato <1 mmol/kg con AA ≥1.5: riesgo de síndrome tipo realimentación (hipofosfatemia, hipercalcemia).']);
+  if(d<=7&&caP>1.05)A.push(['warn','Ca:P molar '+fx(caP,2)+' en la primera semana: con AA altos favorece hipercalcemia e hipofosfatemia. Meta 0.8–1.0.']);
+  if(d>7&&caP>1.4)A.push(['warn','Ca:P molar '+fx(caP,2)+' (>1.3).']);
+  if(peg&&d<=5)A.push(['info','PEG/RCIU: P sérico, K y Ca diarios los días 1–5; P 1.3–2 mmol/kg desde el inicio y Ca:P ≤1.']);
+  if(!diur&&k>0)A.push(['warn','K⁺ indicado sin diuresis establecida: riesgo de hiperpotasemia.']);
+  if(!PS.org&&(caL*2+pL)>30)A.push(['warn','Ca '+fx(caL*2,1)+' mEq/L + P '+fx(pL,1)+' mmol/L = '+fx(caL*2+pL,1)+' (>30) con fosfato inorgánico: riesgo de precipitación. Consulte la curva de solubilidad con farmacia o use glicerofosfato.']);
+  if(clKg>0&&(naTot+kTot2-clKg)<1&&b===2&&d>=3)A.push(['info','Cl⁻ '+fx(clKg,1)+' mmol/kg, casi igual a Na⁺+K⁺: considere acetato para prevenir acidosis hiperclorémica.']);
+  if(d>=7&&kTot<90&&Vnp/Vt>=0.5)A.push(['warn','Energía total '+fx(kTot,0)+' kcal/kg/d en fase de crecimiento (meta parenteral 90–120).']);
+  if(d===1&&kTot<40)A.push(['info','Energía día 1: '+fx(kTot,0)+' kcal/kg (meta 45–55).']);
+  if(ent>=120)A.push(['info','Enteral ≥120 mL/kg/d: evalúe suspender la NP acuosa si hay buena tolerancia.']);
+  if(!A.length&&feasible)A.push(['ok','Sin alertas con estos parámetros. Valide con farmacia y control bioquímico.']);
+
+  last={g:g,d:d,central:central,PS:PS,kg:kg,Vt:Vt,Ve:Ve,Vo:Vo,Vnp:Vnp,Vaq:Vaq,Vlip:Vlip,VlipEm:VlipEm,vitLip:vitLip,gAA:gAA,VAA:VAA,VP:VP,mP:mP,VNaAc:VNaAc,VNaCl:VNaCl,VKCl:VKCl,VCa:VCa,VMg:VMg,Vtr:Vtr,VZn:VZn,Vsol:Vsol,VHep:VHep,hepU:hepU,gDex:gDex,VD50:VD50,Vw:Vw,VD10b:VD10b,VD50b:VD50b,Vw2:Vw2,fA:fA,fL:fL,lipEmG:lipEmG,fatVit:fatVit,
+    gir:gir,aa:aa,lip:lip,na:na,k:k,ca:ca,p:p,mg:mg,acf:acf,naTot:naTot,kTot2:kTot2,clKg:clKg,dexC:dexC,osm:osm,kNP:kNP,kPN:kPN,kTot:kTot,protTot:protTot,caP:caP,caL:caL,pL:pL,kDex:kDex,kAA:kAA,kLip:kLip,kEnt:kEnt,feasible:feasible,znExtra:znExtra,ent:ent};
+  render(A);
+}
+
+function row(name,dose,tot,ml,cls){return '<tr'+(cls?' class="'+cls+'"':'')+'><td>'+name+'</td><td class="n">'+dose+'</td><td class="n">'+tot+'</td><td class="n">'+ml+'</td></tr>'}
+function render(A){
+  var L=last,h='';
+  var al='';for(var i=0;i<A.length;i++){al+='<div class="alert '+A[i][0]+'">'+A[i][1]+'</div>'}
+  var kc=function(v){return v<0?'b':''};
+  h+='<div class="card"><div class="sectlabel">4 · Resultado</div>'+
+   '<div class="kpis">'+
+   '<div class="kpi '+(L.kTot<45?'w':'')+'"><b>'+fx(L.kTot,0)+'</b><span>kcal/kg/d total</span></div>'+
+   '<div class="kpi"><b>'+fx(L.kPN,0)+'</b><span>kcal/kg NP</span></div>'+
+   '<div class="kpi '+(L.d>=2&&L.aa>=2.5&&L.kNP<65?'w':'')+'"><b>'+fx(L.kNP,0)+'</b><span>kcal no prot/kg</span></div>'+
+   '<div class="kpi"><b>'+fx(L.protTot,1)+'</b><span>proteína total g/kg</span></div>'+
+   '<div class="kpi '+((!L.central&&L.dexC>12.5)?'b':'')+'"><b>'+fx(L.dexC,1)+'%</b><span>dextrosa acuosa</span></div>'+
+   '<div class="kpi '+((!L.central&&L.osm>900)?'b':'')+'"><b>'+fx(L.osm,0)+'</b><span>mOsm/L (est.)</span></div>'+
+   '</div>';
+  var tk=L.kDex+L.kAA+L.kLip+L.kEnt||1;
+  h+='<div class="bar"><i style="width:'+(L.kDex/tk*100)+'%;background:#e0a33a"></i><i style="width:'+(L.kAA/tk*100)+'%;background:#b5523b"></i><i style="width:'+(L.kLip/tk*100)+'%;background:#e9dcc6"></i><i style="width:'+(L.kEnt/tk*100)+'%;background:#5f7d63"></i></div>'+
+   '<div class="legend"><span><i style="background:#e0a33a"></i>Glucosa '+fx(L.kDex/tk*100,0)+'%</span><span><i style="background:#b5523b"></i>AA '+fx(L.kAA/tk*100,0)+'%</span><span><i style="background:#e9dcc6"></i>Lípidos '+fx(L.kLip/tk*100,0)+'%</span><span><i style="background:#5f7d63"></i>Enteral '+fx(L.kEnt/tk*100,0)+'%</span></div>'+
+   '<p class="muted" style="font-size:.78rem;margin:8px 0 0">Ca:P molar <b class="mono">'+fx(L.caP,2)+'</b> · Ca '+fx(L.ca*40.08,0)+' mg/kg · P '+fx(L.p*30.97,0)+' mg/kg · Na total '+fx(L.naTot,1)+' · K total '+fx(L.kTot2,1)+' · Cl⁻ '+fx(L.clKg,1)+' mmol/kg · kcal no proteicas/g AA '+(L.gAA>0?fx((L.kDex+L.kLip)/L.gAA,0):'—')+'</p></div>';
+  h+='<div class="card">'+al+'</div>';
+
+  if(L.Vnp>0&&L.Vaq>0){
+  var fA=L.fA,fL=L.fL,ov=fA>1;
+  h+='<div class="card"><div class="sectlabel">5 · Orden de NP para 24 h ('+fx(L.g,0)+' g · DDV '+L.d+')</div>'+
+   '<p class="muted" style="font-size:.8rem;margin:0 0 6px">Volumen total '+fx(L.Vt,1)+' mL = enteral '+fx(L.Ve,1)+' + otras IV '+fx(L.Vo,1)+' + NP '+fx(L.Vnp,1)+' mL.'+(ov?' Las cantidades de la bolsa incluyen sobrellenado.':'')+'</p>'+
+   '<div class="scroll"><table class="t"><tr><th>Bolsa acuosa</th><th>Dosis</th><th>Total</th><th>mL</th></tr>';
+  h+=row('Aminoácidos '+fx(CFG.cAA*100,0)+' %',fx(L.aa,1)+' g/kg',fx(L.gAA,2)+' g',fx(L.VAA*fA,1));
+  h+=row('Dextrosa (VIG)',fx(L.gir,1)+' mg/kg/min',fx(L.gDex,2)+' g','');
+  h+=row('&nbsp;&nbsp;Opción A · D'+fx(CFG.cDexHi*100,0)+' %','','',fx(L.VD50*fA,1));
+  h+=row('&nbsp;&nbsp;Opción A · agua estéril','','',fx(Math.max(0,L.Vw)*fA,1));
+  h+=row('&nbsp;&nbsp;Opción B · D'+fx(CFG.cDexLo*100,0)+' %','','',fx(L.VD10b*fA,1));
+  h+=row('&nbsp;&nbsp;Opción B · D'+fx(CFG.cDexHi*100,0)+' %'+(L.Vw2>0.05?' + agua '+fx(L.Vw2*fA,1)+' mL':''),'','',fx(L.VD50b*fA,1));
+  h+=row(L.PS.l.split(' (')[0],fx(L.p,1)+' mmol/kg',fx(L.mP,2)+' mmol',fx(L.VP*fA,2));
+  if(L.VNaCl>0.001)h+=row('NaCl',fx(L.na,1)+' mmol/kg Na total',fx(L.VNaCl*CFG.cNaCl,2)+' mEq',fx(L.VNaCl*fA,2));
+  if(L.VNaAc>0.001)h+=row('Acetato de sodio ('+fx(L.acf*100,0)+' %)','',fx(L.VNaAc*CFG.cNaAc,2)+' mEq',fx(L.VNaAc*fA,2));
+  if(L.VKCl>0.001)h+=row('KCl',fx(L.k,1)+' mmol/kg K total',fx(L.VKCl*CFG.cKCl,2)+' mEq',fx(L.VKCl*fA,2));
+  h+=row('Gluconato de calcio 10 %',fx(L.ca,1)+' mmol/kg',fx(L.ca*L.kg,2)+' mmol',fx(L.VCa*fA,2));
+  if(L.VMg>0.0001)h+=row('Sulfato de magnesio',fx(L.mg,2)+' mmol/kg',fx(L.mg*L.kg,3)+' mmol',fx(L.VMg*fA,3));
+  if(L.Vtr>0)h+=row('Oligoelementos pediátricos',CFG.trMLkg+' mL/kg','',fx(L.Vtr*fA,2));
+  if(L.VZn>0)h+=row('Zinc suplementario','hasta 400 µg/kg',fx(L.znExtra,0)+' µg',fx(L.VZn*fA,2));
+  if(L.Vsol>0)h+=row('Vitaminas hidrosolubles',CFG.vitHidMLkg+' mL/kg','',fx(L.Vsol*fA,2));
+  if(L.VHep>0)h+=row('Heparina','0.5 UI/mL',fx(L.hepU,0)+' UI',fx(L.VHep*fA,2));
+  h+=row('<b>Total bolsa acuosa</b>','','','<b>'+fx(L.Vaq*fA,1)+'</b>','sub');
+  h+=row('Velocidad','','','<b>'+fx(L.Vaq/24,2)+' mL/h</b>','sub');
+  h+='<tr><th>Jeringa lipídica</th><th></th><th></th><th></th></tr>';
+  h+=row('Emulsión lipídica '+fx(CFG.cLip*100,0)+' %',fx(L.lip,1)+' g/kg total',fx(L.lipEmG,2)+' g',fx(L.VlipEm*fL,1));
+  if(L.vitLip>0)h+=row('Vitaminas liposolubles (aportan '+fx(L.fatVit,2)+' g grasa)',CFG.vitLipMLkg+' mL/kg','',fx(L.vitLip*fL,1));
+  h+=row('<b>Total jeringa lipídica</b>','','','<b>'+fx(L.Vlip*fL,1)+'</b>','sub');
+  h+=row('Velocidad (24 h)','','','<b>'+fx(L.Vlip/24,2)+' mL/h</b>','sub');
+  h+='</table></div>';
+  h+='<p class="muted" style="font-size:.76rem">Fosfato como '+L.PS.l+'. Compatibilidad Ca–P: Ca '+fx(L.caL,1)+' mmol/L · P '+fx(L.pL,1)+' mmol/L en la bolsa acuosa. Proteger de la luz.</p>';
+  h+='<div class="btns no-print"><button class="btn sec" id="copy" type="button">Copiar orden</button><button class="btn ghost" onclick="window.print()" type="button">Imprimir</button></div></div>';
+  }
+  $('out').innerHTML=h;
+  var cp=$('copy'); if(cp)cp.addEventListener('click',copyOrder);
+}
+
+function copyOrder(){var L=last;if(!L)return;
+  var t='NP '+fx(L.g,0)+' g · DDV '+L.d+' · '+(L.central?'central':'periférica')+'\n'+
+  'Líquidos '+fx(L.Vt/L.kg,0)+' mL/kg/d (NP '+fx(L.Vnp,1)+' mL; enteral '+fx(L.Ve,1)+'; otras '+fx(L.Vo,1)+')\n'+
+  'VIG '+fx(L.gir,1)+' mg/kg/min · AA '+fx(L.aa,1)+' g/kg · Lípidos '+fx(L.lip,1)+' g/kg\n'+
+  'Na '+fx(L.naTot,1)+' · K '+fx(L.kTot2,1)+' · Ca '+fx(L.ca,1)+' · P '+fx(L.p,1)+' · Mg '+fx(L.mg,2)+' mmol/kg (acetato '+fx(L.acf*100,0)+' % del Na)\n'+
+  'Acuosa: AA '+fx(L.VAA,1)+' mL; D50 '+fx(L.VD50,1)+' mL + agua '+fx(Math.max(0,L.Vw),1)+' mL; fosfato '+fx(L.VP,2)+'; NaCl '+fx(L.VNaCl,2)+'; NaAc '+fx(L.VNaAc,2)+'; KCl '+fx(L.VKCl,2)+'; Ca glu '+fx(L.VCa,2)+'; MgSO4 '+fx(L.VMg,3)+' mL → '+fx(L.Vaq,1)+' mL a '+fx(L.Vaq/24,2)+' mL/h\n'+
+  'Lípidos: emulsión '+fx(L.VlipEm,1)+' mL + vit. lipos. '+fx(L.vitLip,1)+' mL → '+fx(L.Vlip,1)+' mL a '+fx(L.Vlip/24,2)+' mL/h\n'+
+  'Energía total '+fx(L.kTot,0)+' kcal/kg/d · no proteica '+fx(L.kNP,0)+' · dextrosa '+fx(L.dexC,1)+' % · osm est. '+fx(L.osm,0)+' mOsm/L · Ca:P '+fx(L.caP,2)+'\n'+
+  'Calculado con SAVIA (CDSS NP prematuro). Verificar con farmacia.';
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(function(){toast('Orden copiada')},function(){fallbackCopy(t)})}else fallbackCopy(t)}
+function fallbackCopy(t){var ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);ta.select();try{document.execCommand('copy');toast('Orden copiada')}catch(e){}document.body.removeChild(ta)}
+
+var ids=['peso','ddv','eg','acc','fl','oth','ent','entK','entP','entC','gir','aa','lip','na','k','acf','ca','p','mg','ovA','ovL'];
+for(var j=0;j<ids.length;j++){$(ids[j]).addEventListener('input',calc);$(ids[j]).addEventListener('change',calc)}
+['peg','diur','col','vit','tr','zn','hep'].forEach(function(id){$(id).addEventListener('change',calc)});
+
+/* ---------- casos ---------- */
+var CASES=[
+ {t:'Valentina: las primeras seis horas',tag:['Día 1','EBPN','Inicio de NP'],
+  p:'26+2 semanas, 780 g (AEG), cesárea por corioamnionitis. Intubada, surfactante. CVU en T9 y CAU con solución heparinizada a 0.5 mL/h. Diuresis aún no establecida. Calostro orofaríngeo, sin alimentación enteral.',
+  q:['¿Cuántos líquidos y qué VIG para el día 1?','¿Inicia AA y lípidos hoy? ¿A cuánto?','¿Fosfato y potasio desde ya?'],
+  a:'<ul class="tight"><li><b>Líquidos</b> ~90 mL/kg/d (rango 80–100 para &lt;1000 g), descontando la CAU (0.5×24/0.78 ≈ 15 mL/kg/d).</li><li><b>VIG 5</b> mg/kg/min: los &lt;1000 g toleran mal la glucosa el día 1.</li><li><b>AA 2 g/kg</b> desde las primeras horas (mínimo 1.5) y <b>lípidos 1 g/kg</b>: ESPGHAN permite iniciarlos el día 1 y como máximo el día 2.</li><li><b>Fosfato 1 mmol/kg y Ca 0.8 mmol/kg</b> (Ca:P ≈0.8): los AA activan el anabolismo y arrastran P hacia la célula.</li><li><b>K⁺ 0</b> hasta diuresis ≥1 mL/kg/h. Na⁺ 1 mmol/kg (el glicerofosfato ya aporta 2 mmol/kg de Na: revisar).</li><li>Vitaminas desde el inicio; heparina 0.5 UI/mL por CVU; proteger de la luz.</li></ul><p>Observe en la calculadora que con glicerofosfato el Na del fosfato supera la meta de 1 mmol/kg: es aceptable el día 1 si el Na sérico es normal, o use fosfato de potasio cuando haya diuresis.</p>',
+  load:{peso:780,ddv:1,eg:26,acc:'c',peg:false,diur:false,fl:90,oth:15,ent:0,gir:5,aa:2,lip:1,na:1,k:0,acf:0,ca:0.8,p:1,mg:0.1,vit:true,tr:false,zn:false,hep:true}},
+ {t:'Mateo: el fósforo que desaparece',tag:['Día 3','PEG/RCIU','Realimentación'],
+  p:'29 semanas, 690 g (PEG severo; madre con preeclampsia y Doppler umbilical con flujo diastólico ausente). DDV 3 con NP: líquidos 120 mL/kg, VIG 7, AA 3.5 g/kg, lípidos 2 g/kg, Ca 1.6 y P 1.0 mmol/kg, K 1. Laboratorio: P 2.9 mg/dL, Ca total 11.8 mg/dL, K 3.1 mmol/L, glucemia 168 mg/dL. Diuresis 3 mL/kg/h.',
+  q:['¿Qué síndrome es y por qué en este niño?','¿Qué cambia hoy en la NP?','¿Suspende los aminoácidos?'],
+  a:'<ul class="tight"><li><b>Síndrome tipo realimentación</b>: AA altos + P insuficiente + Ca:P 1.6 en un PEG con depleción de P intracelular desde la vida fetal.</li><li><b>Hoy:</b> P a 2.0 mmol/kg (fosfato de potasio aporta además K; o glicerofosfato si el Na lo permite); Ca a 1.4–1.6 para Ca:P ≤1; K 2–2.5 mmol/kg; Mg 0.2.</li><li><b>AA:</b> no suspender; con P &lt;3.1 mg/dL es razonable sostener 2.5–3 g/kg 24–48 h mientras se corrige y volver a 3.5.</li><li>Control de P, Ca, K a las 12–24 h y diario hasta el día 5–7.</li><li>La hiperglucemia leve también se ve en este síndrome; no subir VIG.</li></ul><p>Cargue el caso y compare la Ca:P antes y después de los cambios.</p>',
+  load:{peso:690,ddv:3,eg:29,acc:'c',peg:true,diur:true,fl:120,oth:0,ent:0,gir:7,aa:3.5,lip:2,na:2,k:1,acf:0,ca:1.6,p:1.0,mg:0.2,vit:true,tr:true,zn:true,hep:true}},
+ {t:'Sofía: glucosa alta, triglicéridos altos',tag:['Día 5','24 semanas','Hiperglucemia'],
+  p:'24+4 semanas, 620 g. DDV 5 en NP: líquidos 140 mL/kg, VIG 9, AA 3.5, lípidos 3 g/kg. Glucemias de 248 y 232 mg/dL separadas por 4 h; TG 310 mg/dL. Más apneas, desaturaciones y llenado capilar de 3 s; PCR 18 mg/L.',
+  q:['¿Qué hace primero?','¿Cómo maneja la VIG, los AA y los lípidos?','¿Cuándo insulina?'],
+  a:'<ul class="tight"><li><b>Primero, sepsis tardía</b>: hemocultivo (de catéter y periférico), antibióticos según el CDSS Sepsis Tardía; considerar el catéter como foco.</li><li><b>VIG:</b> bajar a 7 y luego a 6, con glucemia c/2–4 h, sin bajar de 4.</li><li><b>AA:</b> mantener 3.5 g/kg (estimulan insulina y evitan catabolismo).</li><li><b>Lípidos:</b> TG &gt;265 → bajar a 2 g/kg (no suspender) y repetir TG en 24–48 h; la sepsis reduce la actividad de la lipoproteína lipasa.</li><li><b>Insulina</b> regular 0.02–0.05 UI/kg/h solo si sigue &gt;180–200 mg/dL con VIG 4–6; glucemia horaria al inicio.</li></ul>',
+  load:{peso:620,ddv:5,eg:24,acc:'c',peg:false,diur:true,fl:140,oth:0,ent:0,gir:9,aa:3.5,lip:3,na:3,k:2,acf:50,ca:1.8,p:1.8,mg:0.2,vit:true,tr:true,zn:true,hep:true}},
+ {t:'Daniel: tres semanas de NP y piel amarilla',tag:['Día 24','Post-ECN','Colestasis'],
+  p:'28 semanas al nacer, hoy 1350 g, DDV 24. ECN IIIB con laparotomía e ileostomía el DDV 10. NP desde entonces (líquidos 150, VIG 12, AA 3.5, lípidos de soya pura 3.5 g/kg). Enteral trófica 20 mL/kg/d de leche materna. Bilirrubina directa 2.6 mg/dL, GGT 280 U/L, ALT 60 U/L, heces de ileostomía biliosas.',
+  q:['¿Es colestasis asociada a NP? ¿Qué más descarta?','¿Qué cambia en los macronutrientes?','¿Qué hace con oligoelementos?'],
+  a:'<ul class="tight"><li><b>Probable PNAC/IFALD</b> (BD &gt;1 mg/dL, NP &gt;14 días, ECN y cirugía como factores), tras descartar sepsis, obstrucción, CMV y causas metabólicas (CDSS Colestasis).</li><li><b>Lípidos:</b> cambiar soya pura por emulsión compuesta con aceite de pescado y bajar a ~2 g/kg; si progresa, aceite de pescado puro 1 g/kg/d.</li><li><b>Glucosa:</b> VIG 12 es el tope; bajarla a 10–11 reduce lipogénesis y esteatosis, compensando con lípidos compuestos.</li><li><b>Enteral:</b> avanzar en cuanto sea posible; considerar reinfundir efluente de ileostomía si el equipo quirúrgico lo indica.</li><li><b>Oligoelementos:</b> suspender manganeso; mantener cobre y medirlo; zinc alto por pérdidas de ileostomía.</li><li>Ácido ursodesoxicólico cuando la enteral se tolere; ciclar NP más adelante.</li></ul>',
+  load:{peso:1350,ddv:24,eg:28,acc:'c',peg:false,diur:true,col:true,fl:150,oth:0,ent:20,gir:12,aa:3.5,lip:3.5,na:4,k:2,acf:50,ca:2.2,p:2.0,mg:0.25,vit:true,tr:true,zn:true,hep:true}}
+];
+function renderCases(){var h='';
+  CASES.forEach(function(c,i){
+    var tags=c.tag.map(function(t){return '<span class="pill">'+t+'</span>'}).join('');
+    var qs=c.q.map(function(q){return '<li>'+q+'</li>'}).join('');
+    h+='<div class="card"><div class="case-h"><div class="case-n">'+(i+1)+'</div><div><h3 style="margin:0 0 4px">'+c.t+'</h3>'+tags+'</div></div>'+
+      '<p>'+c.p+'</p><div class="q"><b>Preguntas</b><ol class="tight">'+qs+'</ol></div>'+
+      '<details><summary>Discusión</summary><div class="in">'+c.a+'</div></details>'+
+      '<div class="btns"><button class="btn sec" type="button" data-case="'+i+'">Cargar en la calculadora</button></div></div>'});
+  $('cases').innerHTML=h;
+  var bs=$('cases').querySelectorAll('[data-case]');
+  for(var i=0;i<bs.length;i++){bs[i].addEventListener('click',function(){loadCase(+this.getAttribute('data-case'))})}}
+function loadCase(i){var L=CASES[i].load;$('col').checked=false;
+  for(var k in L){var e=$(k);if(!e)continue;if(e.type==='checkbox')e.checked=!!L[k];else e.value=L[k]}
+  calc();showTab('calc');toast('Caso '+(i+1)+' cargado')}
+
+/* ---------- ícono para pantalla de inicio ---------- */
+function makeIcon(){try{var c=document.createElement('canvas');c.width=c.height=180;var x=c.getContext('2d');
+  var g=x.createRadialGradient(120,50,10,90,90,130);g.addColorStop(0,'#5a2418');g.addColorStop(1,'#140806');x.fillStyle=g;x.fillRect(0,0,180,180);
+  x.beginPath();x.moveTo(90,28);x.bezierCurveTo(90,28,48,82,48,108);x.bezierCurveTo(48,132,67,150,90,150);x.bezierCurveTo(113,150,132,132,132,108);x.bezierCurveTo(132,82,90,28,90,28);x.closePath();
+  var dg=x.createLinearGradient(0,30,0,150);dg.addColorStop(0,'#fff4e3');dg.addColorStop(.55,'#f0b77d');dg.addColorStop(1,'#c8603f');x.fillStyle=dg;x.fill();
+  x.fillStyle='#2a120d';x.font='800 34px Georgia,serif';x.textAlign='center';x.fillText('NP',90,124);
+  var url=c.toDataURL('image/png');var l=document.createElement('link');l.rel='apple-touch-icon';l.href=url;document.head.appendChild(l);
+  var f=document.createElement('link');f.rel='icon';f.href=url;document.head.appendChild(f)}catch(e){}}
+
+/* ---------- inicio ---------- */
+loadCfg();renderCases();makeIcon();suggest();
+if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='localhost')){
+  window.addEventListener('load',function(){navigator.serviceWorker.register('./sw.js',{scope:'./'}).catch(function(){})})}
+})();
+</script>
+</body>
+</html>
